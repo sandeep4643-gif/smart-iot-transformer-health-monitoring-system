@@ -1,0 +1,78 @@
+#include <LiquidCrystal.h>
+
+// LCD Pins: RS, E, D4, D5, D6, D7
+// Connections: RS-12, E-11, D4-5, D5-4, D6-3, D7-2
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
+const int tempPin = A0;
+const int currentPin = A1;
+const int trigPin = 7;
+const int echoPin = 6;
+const int buzzerPin = 8;
+
+void setup() {
+ 
+  Serial.begin(9600);
+  
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+  pinMode(buzzerPin, OUTPUT);
+  
+  // LCD initialization (16 columns, 2 rows)
+  lcd.begin(16, 2);
+  lcd.print("Transformer Mon.");
+  Serial.println("System Initializing...");
+  delay(2000);
+  lcd.clear();
+}
+
+void loop() {
+  // 1. Temperature Calculation (TMP36)
+  int tempRaw = analogRead(tempPin);
+  float voltage = tempRaw * (5.0 / 1023.0);
+  float tempC = (voltage - 0.5) * 100; 
+
+  // 2. Current Simulation (Potentiometer)
+  int currentVal = analogRead(currentPin);
+  float amps = currentVal * (10.0 / 1023.0);
+
+  // 3. Oil Level (Ultrasonic Distance)
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  long duration = pulseIn(echoPin, HIGH);
+  int distance = duration * 0.034 / 2;
+
+  // --- Serial Monitor Printing ---
+  Serial.print("Temp: "); Serial.print(tempC); Serial.print("C | ");
+  Serial.print("Current: "); Serial.print(amps); Serial.print("A | ");
+  Serial.print("Oil Dist: "); Serial.print(distance); Serial.println("cm");
+
+  // --- LCD and Alert Logic ---
+  // Thresholds: Temp > 70, Amps > 8, Oil Dist > 20
+  if (tempC < -1.5 ||tempC > 70 || amps > 8.0 || distance > 20) {
+    digitalWrite(buzzerPin, HIGH);
+    
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("!!! ALERT !!!");
+    lcd.setCursor(0, 1);
+    lcd.print("CRITICAL STATE");
+    
+    Serial.println("WARNING: TRANSFORMER CRITICAL!");
+  } else {
+    digitalWrite(buzzerPin, LOW);
+    
+    // Normal Display
+    lcd.setCursor(0, 0);
+    lcd.print("T:"); lcd.print(tempC, 1); lcd.print("C ");
+    lcd.print("A:"); lcd.print(amps, 1); lcd.print("A");
+    
+    lcd.setCursor(0, 1);
+    lcd.print("Oil Dist: "); lcd.print(distance); lcd.print("cm ");
+  }
+
+  delay(1000); 
+} 
