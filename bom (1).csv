@@ -1,0 +1,8 @@
+﻿Name,Quantity,Component
+"1",1," Breadboard Small"
+"U1",1," Arduino Uno R3"
+"U3",1," Temperature Sensor [TMP36]"
+"DIST1",1," Ultrasonic Distance Sensor (4-pin)"
+"Rpot1",1,"250 kΩ Potentiometer"
+"PIEZO1",1," Piezo"
+"U2",1," LCD 16 x 2"
